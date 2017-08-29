@@ -28,10 +28,10 @@ library(topicmodels)
 
 # create an object "cred" that will save the authenticated object that we can use for later sessions
 
-consumer_key <- "xwr2EIziRyLVyj2IQJltSmbG9"
-consumer_secret <- "d2Lle10EMEnMQJ4BEnitG2aQo2jvWtdSoOwOGbm8l2blceB5pJ"
-access_token <- "897829237310226432-y2VoDcFrLXpGScJU9vb309omF6bu62S"
-access_secret <- "Kk48sk9FNoDlYKxa1Bhe7lJkuY8wyl4WsY76mdMSE01ps"
+consumer_key <- "ADD"
+consumer_secret <- "ADD"
+access_token <- "ADD"
+access_secret <- "ADD"
 
 cred <- setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
