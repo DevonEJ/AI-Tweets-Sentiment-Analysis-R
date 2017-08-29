@@ -24,13 +24,14 @@ library(dplyr)
 library(wordcloud2)
 library(RColorBrewer)
 library(htmlwidgets)
+library(topicmodels)
 
 # create an object "cred" that will save the authenticated object that we can use for later sessions
 
-consumer_key <- "ADD"
-consumer_secret <- "ADD"
-access_token <- "ADD"
-access_secret <- "ADD"
+consumer_key <- "xwr2EIziRyLVyj2IQJltSmbG9"
+consumer_secret <- "d2Lle10EMEnMQJ4BEnitG2aQo2jvWtdSoOwOGbm8l2blceB5pJ"
+access_token <- "897829237310226432-y2VoDcFrLXpGScJU9vb309omF6bu62S"
+access_secret <- "Kk48sk9FNoDlYKxa1Bhe7lJkuY8wyl4WsY76mdMSE01ps"
 
 cred <- setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
@@ -41,7 +42,7 @@ no.of.tweets <- 2000
 
 tweets <- searchTwitter(search.string, n = no.of.tweets, lang = "en")
 class(tweets)
-tweets <- gsub("@\\w+", "", tweets)
+#tweets <- gsub("@\\w+", "", tweets)
 #save(tweets, file = "aitweets.RData") # Save those same tweets for reproducability if desired, or refresh each time code runs
 
 # Convert text to data frame, and then corpus of documents (1 tweet = 1 document)
@@ -75,7 +76,7 @@ freq.terms <- rowSums(as.matrix(tweet.tdm)) # Convert the TDM into a matrix firs
 
 tweets.plot <- data.frame(term = names(freq.terms), freq = freq.terms)
 
-tweets.df %>%
+tweets.plot %>%
   arrange(freq) %>%
   top_n(5) %>%
   ggplot(aes(x = term, y = freq, fill = term)) +
@@ -88,11 +89,58 @@ tweets.df %>%
 # 'Letter cloud' of frequent (> 15 freq) terms in shape 'AI'
 # HTML object created
 
-tweets.df %>%
+tweets.plot %>%
   filter(freq > 15) %>%
   letterCloud(word = "AI", size = 1, color = "black")
 
-# Sentiment analysis with tidytext - How do people feel about AI in these tweets?
-# Tokenise tweets into single words
+## Sentiment analysis with tidytext - How do people feel about AI in these tweets?
 
-tweets.tokens <- unnest_tokens(tweets.df, term, word) ##UNFINISHED
+# Join the words with NRC sentiment lexicon
+
+sentiment <- tweets.plot %>%
+  mutate(word = term) %>%
+  left_join(get_sentiments("nrc")) %>%
+  group_by(word) %>%
+  filter(sentiment != "NA") %>%
+  ungroup()
+
+# Plot overall sentiment counts for AI tweets
+
+ggplot(data = sentiment, aes(x = as.factor(sentiment), y = freq, fill = sentiment)) +
+  geom_bar(stat = "identity") +
+  xlab("Sentiment") +
+  ylab("Frequency") 
+
+# Plot top 10 words classified 'positive' sentiment in AI tweets
+
+sentiment %>%
+  filter(sentiment == "positive") %>%
+  group_by(word) %>%
+  arrange(as.integer(desc(freq))) %>%
+  head(10) %>%
+  ungroup() %>%
+  ggplot(aes(x = word, y = freq)) +
+  geom_bar(stat = "identity", fill = "green", colour = "black") +
+  xlab("Word") +
+  ylab("Frequency") +
+  ggtitle("Top 10 Positive Words in AI Tweets") +
+  coord_flip()
+  
+# Plot top 10 words classified 'negative' sentiment in AI tweets
+
+sentiment %>%
+  filter(sentiment == "negative") %>%
+  group_by(word) %>%
+  arrange(as.integer(desc(freq))) %>%
+  head(10) %>%
+  ungroup() %>%
+  ggplot(aes(x = word, y = freq)) +
+  geom_bar(stat = "identity", fill = "red", colour = "black") +
+  xlab("Word") +
+  ylab("Frequency") +
+  ggtitle("Top 10 Negative Words in AI Tweets") +
+  coord_flip()
+  
+
+
+
